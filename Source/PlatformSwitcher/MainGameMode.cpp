@@ -2,6 +2,7 @@
 
 #include "MainGameMode.h"
 #include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
 
 void AMainGameMode::BeginPlay()
 {
@@ -33,11 +34,16 @@ void AMainGameMode::OnSwitch()
 	}
 
 	// Get current location
-	FVector newLocation = player->GetActorLocation();
+	FVector newLocation = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
 
 	// Adjust the X location
 	newLocation.X = newX;
 
 	// Set new location
 	GetWorld()->GetFirstPlayerController()->GetPawn()->SetActorLocation(newLocation);
+}
+
+void AMainGameMode::OnGameOver(bool win)
+{
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
 }

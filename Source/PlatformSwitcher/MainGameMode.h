@@ -25,7 +25,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void OnSwitch();
+	void OnGameOver(bool win);
 
 	bool Switched;
-
 };
