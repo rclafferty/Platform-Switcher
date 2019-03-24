@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MainGameMode.h"
+#include "GameWidget.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -11,6 +12,13 @@ void AMainGameMode::BeginPlay()
 	//player = GetWorld()->GetFirstPlayerController()->GetPawn();
 
 	GetWorld()->GetFirstPlayerController()->GetPawn()->InputComponent->BindAction("Switch", IE_Pressed, this, &AMainGameMode::OnSwitch);
+	GetWorld()->GetFirstPlayerController()->GetPawn()->InputComponent->BindAction("Restart", IE_Pressed, this, &AMainGameMode::OnRestart).bExecuteWhenPaused = true;
+
+	ChangeMenuWidget(StartingWidgetClass);
+	((UGameWidget*)CurrentWidget)->Load();
+
+	FText startingMessage = FText::FromString(FString(TEXT("Race to the orb!")));
+	((UGameWidget*)CurrentWidget)->SetMessageText(startingMessage);
 }
 
 void AMainGameMode::Tick(float DeltaTime)
@@ -45,5 +53,31 @@ void AMainGameMode::OnSwitch()
 
 void AMainGameMode::OnGameOver(bool win)
 {
+	((UGameWidget*)CurrentWidget)->OnGameOver(win);
+
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
+}
+
+void AMainGameMode::ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidgetClass)
+{
+	if (CurrentWidget != nullptr)
+	{
+		CurrentWidget->RemoveFromViewport();
+		CurrentWidget = nullptr;
+	}
+
+	if (NewWidgetClass != nullptr)
+	{
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), NewWidgetClass);
+
+		if (CurrentWidget != nullptr)
+		{
+			CurrentWidget->AddToViewport();
+		}
+	}
+}
+
+void AMainGameMode::OnRestart()
+{
+	UGameplayStatics::OpenLevel(this, FName(*GetWorld()->GetName()), false);
 }
